@@ -56,10 +56,15 @@ TravelPal uses the Google Gemini API for AI capabilities.
    GOOGLE_API_KEY=your_actual_api_key_here
    ```
 
-4. **Security Warning:** 
+4. **⚠️ SECURITY WARNING:** 
    - NEVER commit your `.env` file to version control
    - The `.gitignore` file is set up to exclude `.env` files
    - Do not share your API key publicly
+   - If you accidentally commit your API key, revoke it immediately and generate a new one
+
+5. **Verify that `.env` is ignored:**
+   - Run `git status` and ensure that your `.env` file is NOT listed
+   - If it appears in the output, your configuration is incorrect and may expose your key
 
 ## Step 5: Run the Application
 
