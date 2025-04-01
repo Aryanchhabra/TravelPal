@@ -77,7 +77,7 @@ rate_limiter = RateLimiter()
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=2, min=4, max=20))
 def get_llm():
-    """Initialize the LLM with improved error handling"""
+    """Initialize the LLM with maximum simplicity for cloud deployment"""
     try:
         # Print API key status (without revealing the key)
         if not config.GOOGLE_API_KEY or config.GOOGLE_API_KEY == "your_google_api_key_here":
@@ -87,19 +87,12 @@ def get_llm():
             
         print(f"Attempting to initialize model: {config.MODEL_NAME}")
         
-        # Create the model with proper error handling and no safety settings by default
-        model_kwargs = {
-            "model": config.MODEL_NAME,
-            "temperature": config.MODEL_TEMPERATURE,
-            "google_api_key": config.GOOGLE_API_KEY,
-            "convert_system_message_to_human": True,
-            "max_output_tokens": config.MODEL_MAX_OUTPUT_TOKENS,
-            "top_p": config.MODEL_TOP_P,
-            "top_k": config.MODEL_TOP_K,
-        }
-        
-        # Don't use safety settings at all - they can cause issues
-        return ChatGoogleGenerativeAI(**model_kwargs)
+        # Use absolute minimum parameters for cloud deployments
+        return ChatGoogleGenerativeAI(
+            model=config.MODEL_NAME,
+            google_api_key=config.GOOGLE_API_KEY,
+            temperature=0.7
+        )
     except Exception as e:
         error_msg = str(e)
         print(f"Error initializing LLM: {error_msg}")
@@ -109,19 +102,16 @@ def get_llm():
             st.sidebar.error("⚠️ Invalid API Key. Please check your Google Gemini API key.")
             print("Authentication error - invalid API key")
         
-        # Try with fallback model with simpler parameters
-        fallback_model = "gemini-1.5-flash"  # Hard-code the most reliable model
-        if config.MODEL_NAME != fallback_model:
-            print(f"Attempting with fallback model: {fallback_model}")
-            try:
-                # Use simplified parameters
-                return ChatGoogleGenerativeAI(
-                    model=fallback_model,
-                    temperature=0.7,
-                    google_api_key=config.GOOGLE_API_KEY
-                )
-            except Exception as fallback_error:
-                print(f"Fallback model also failed: {str(fallback_error)}")
+        # Try with hardcoded fallback model with minimal parameters
+        try:
+            print("Attempting with fallback model with minimal parameters")
+            return ChatGoogleGenerativeAI(
+                model="gemini-1.5-flash",
+                google_api_key=config.GOOGLE_API_KEY,
+                temperature=0.5
+            )
+        except Exception as fallback_error:
+            print(f"Fallback model also failed: {str(fallback_error)}")
         
         # If we get here, both attempts failed
         raise
