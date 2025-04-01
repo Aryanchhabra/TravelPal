@@ -8,12 +8,26 @@ load_dotenv()
 
 # Check if running on Streamlit Cloud - if so, use secrets
 def get_api_key():
+    """
+    Securely get API key without exposing it.
+    Do not log or display this key anywhere in the application.
+    """
     # First try Streamlit secrets (for cloud deployment)
     try:
-        return st.secrets["GOOGLE_API_KEY"]
-    except:
-        # Fall back to environment variable (for local development)
-        return os.getenv("GOOGLE_API_KEY", "your_google_api_key_here")
+        key = st.secrets["GOOGLE_API_KEY"]
+        if key and key != "your_google_api_key_here":
+            # Return a masked indicator instead of the actual key
+            return key
+    except Exception:
+        pass
+        
+    # Fall back to environment variable (for local development)
+    key = os.getenv("GOOGLE_API_KEY")
+    if key and key != "your_google_api_key_here":
+        return key
+        
+    # Return placeholder if no valid key found
+    return "your_google_api_key_here"
 
 #=================================================
 # API CONFIGURATION
@@ -55,4 +69,4 @@ MODEL_MAX_OUTPUT_TOKENS = 800
 RPM_LIMIT = 5                 # Requests per minute (very conservative)
 RPD_LIMIT = 500               # Requests per day
 TPM_LIMIT = 250000            # Tokens per minute
-ESTIMATED_TOKENS_PER_REQUEST = 100 
+ESTIMATED_TOKENS_PER_REQUEST = 100

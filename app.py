@@ -79,7 +79,7 @@ rate_limiter = RateLimiter()
 def get_llm():
     """Initialize the LLM with maximum simplicity for cloud deployment"""
     try:
-        # Print API key status (without revealing the key)
+        # Check API key status (without revealing the key)
         if not config.GOOGLE_API_KEY or config.GOOGLE_API_KEY == "your_google_api_key_here":
             print("Warning: No valid API key provided")
             st.sidebar.error("⚠️ Please enter your Google Gemini API key in the sidebar")
@@ -95,6 +95,9 @@ def get_llm():
         )
     except Exception as e:
         error_msg = str(e)
+        # Remove any PII from error messages (like API keys)
+        if "key=" in error_msg.lower():
+            error_msg = "API key error (details redacted for security)"
         print(f"Error initializing LLM: {error_msg}")
         
         # If the error is about an invalid API key, provide a helpful message
@@ -111,7 +114,11 @@ def get_llm():
                 temperature=0.5
             )
         except Exception as fallback_error:
-            print(f"Fallback model also failed: {str(fallback_error)}")
+            fallback_error_msg = str(fallback_error)
+            # Remove any PII from error messages
+            if "key=" in fallback_error_msg.lower():
+                fallback_error_msg = "API key error (details redacted for security)"
+            print(f"Fallback model also failed: {fallback_error_msg}")
         
         # If we get here, both attempts failed
         raise
@@ -551,37 +558,39 @@ def create_sidebar():
     with st.sidebar:
         st.title("TravelPal Settings")
         
-        # Load current API key from environment or session state
-        current_api_key = config.GOOGLE_API_KEY
-        if current_api_key == "your_google_api_key_here":
-            current_api_key = ""
-            
-        # API Key input with password masking - default to env variable
-        api_key = st.text_input(
-            "Google Gemini API Key", 
-            value=current_api_key, 
-            type="password",
-            help="Get your API key at https://makersuite.google.com/app/apikey",
-            placeholder="Enter API key here"
-        )
+        # Check if API key is already set in config/secrets
+        has_api_key = config.GOOGLE_API_KEY and config.GOOGLE_API_KEY != "your_google_api_key_here"
         
-        # Update session state if key provided
-        if api_key and api_key != current_api_key:
-            # Store in session but not in environment (more secure)
-            config.GOOGLE_API_KEY = api_key
-            if 'llm' in st.session_state:
-                # Force recreation of LLM with new key
-                del st.session_state.llm
-            st.success("✅ API key updated!")
+        # Show API key status without displaying the key
+        if has_api_key:
+            st.success("✅ API key is configured")
+        else:
+            # API Key input with password masking - only if not already set
+            api_key = st.text_input(
+                "Google Gemini API Key", 
+                value="", 
+                type="password",
+                help="Get your API key at https://makersuite.google.com/app/apikey",
+                placeholder="Enter API key here"
+            )
+            
+            # Update session state if key provided
+            if api_key:
+                # Store in session but not in environment (more secure)
+                config.GOOGLE_API_KEY = api_key
+                if 'llm' in st.session_state:
+                    # Force recreation of LLM with new key
+                    del st.session_state.llm
+                st.success("✅ API key updated!")
                 
-        if not api_key:
-            st.warning("⚠️ Please enter your API key OR set it in your .env file")
-            st.markdown("""
-            For better security:
-            1. Create a `.env` file in the project root
-            2. Add `GOOGLE_API_KEY=your_key_here`
-            3. Add `.env` to your `.gitignore`
-            """)
+            if not api_key and not has_api_key:
+                st.warning("⚠️ Please enter your API key")
+                st.markdown("""
+                For better security:
+                1. Use Streamlit secrets or environment variables
+                2. Never share your API key in the code
+                3. Add `.env` to your `.gitignore`
+                """)
             
         # Model selection
         model_options = ["gemini-1.5-flash", "gemini-1.5-pro"]
