@@ -2,7 +2,7 @@ import streamlit as st
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.chains import LLMChain
-from langchain.tools import DuckDuckGoSearchRun
+from langchain_community.tools import DuckDuckGoSearchRun
 from langchain.schema import SystemMessage, HumanMessage, AIMessage
 import json
 from typing import Dict, List, Optional, Any
@@ -489,14 +489,14 @@ def update_user_info(message: str):
             basic_info['duration'] = f"{days} days"
             break
 
-    # Extract budget information - enhanced
-    budget_patterns = {
-        'Budget': [r'budget(?:[-\s]friendly)?', 'cheap', 'affordable', 'low cost', 'economical', 'inexpensive'],
-        'Moderate': [r'moderate', 'mid(?:[-\s]range)', 'average', 'reasonable', 'normal', 'standard'],
-        'Luxury': [r'luxury', 'high(?:[-\s]end)', 'expensive', 'premium', 'deluxe', 'upscale']
+    # Fix the budget mapping regex patterns with proper escape sequences
+    budget_mapping = {
+        'Budget': [r'budget', r'cheap', r'affordable', r'inexpensive', r'low[\-\s]cost', r'economical'],
+        'Moderate': [r'moderate', r'mid(?:[\-\s]range)', r'average', r'reasonable', r'normal', r'standard'],
+        'Luxury': [r'luxury', r'high(?:[\-\s]end)', r'expensive', r'premium', r'deluxe', r'upscale']
     }
     
-    for budget_type, patterns in budget_patterns.items():
+    for budget_type, patterns in budget_mapping.items():
         if any(re.search(pattern, message_lower) for pattern in patterns):
             basic_info['budget'] = budget_type
             break

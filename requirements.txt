@@ -1,8 +1,11 @@
-streamlit
-langchain
-langchain-google-genai
-python-dotenv
+langchain>=0.0.335
+langchain-google-genai>=0.0.6
+langchain-community>=0.0.10
+streamlit>=1.28.0
+python-dotenv>=1.0.0
 google-generativeai
 duckduckgo-search
 pydantic
-tenacity
+tenacity>=8.2.3
+regex>=2023.10.3
+watchdog>=3.0.0
