@@ -1,7 +1,5 @@
 # TravelPal: AI-Powered Travel Planning Assistant
 
-![TravelPal Logo](https://via.placeholder.com/800x400?text=TravelPal)
-
 ## 📋 Overview
 
 TravelPal is an innovative AI-powered travel planning assistant that creates personalized travel itineraries with minimal user input. Using Google's Gemini 2.0 Flash API, TravelPal can understand natural language requests and generate detailed day-by-day itineraries complete with attractions, activities, dining options, and practical travel tips.
