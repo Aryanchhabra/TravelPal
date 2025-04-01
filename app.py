@@ -618,108 +618,14 @@ def main():
     # Create sidebar
     create_sidebar()
 
-    # Custom CSS for better styling
-    st.markdown("""
-        <style>
-        .main {
-            padding: 2rem;
-        }
-        .stApp {
-            background-color: #0E1117;
-            color: #FFFFFF;
-        }
-        .stButton button {
-            background-color: #4F46E5;
-            color: white;
-            border-radius: 20px;
-            padding: 0.5rem 2rem;
-            border: none;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-        .stButton button:hover {
-            background-color: #3730A3;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-        .stProgress > div > div {
-            background-color: #4F46E5;
-        }
-        .stExpander {
-            background-color: #1A1F29;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        .stChat {
-            border-radius: 15px;
-            margin: 0.5rem 0;
-        }
-        .user-info {
-            background-color: #1A1F29;
-            padding: 1.5rem;
-            border-radius: 10px;
-            margin: 1rem 0;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        .logo-text {
-            background: linear-gradient(45deg, #4F46E5, #10B981);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 800;
-        }
-        .header-card {
-            background: linear-gradient(135deg, #1A1F29, #111827);
-            padding: 1.5rem;
-            border-radius: 15px;
-            margin-bottom: 2rem;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        .card {
-            background-color: #1A1F29;
-            padding: 1.5rem;
-            border-radius: 12px;
-            margin-bottom: 1rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.3s ease;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-        }
-        .chat-input {
-            background-color: #1A1F29;
-            border-radius: 10px;
-            border: 1px solid #2D3748;
-            color: white;
-            padding: 1rem;
-            margin-top: 1rem;
-        }
-        footer {
-            visibility: hidden;
-        }
-        </style>
-    """, unsafe_allow_html=True)
+    # Apply custom CSS
+    apply_custom_css()
     
-    # Header with logo and title
-    st.markdown("""
-        <div class="header-card">
-            <div style="display: flex; align-items: center;">
-                <div style="font-size: 2.5rem; margin-right: 1rem;">✈️</div>
-                <div>
-                    <h1 class="logo-text" style="margin: 0;">TravelPal</h1>
-                    <p style="margin: 0; color: #A0AEC0;">Your AI travel planning companion</p>
-                </div>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
+    # Display header
+    display_header()
 
     # Main content area
     try:
-        initialize_session_state()
-        
         if not st.session_state.messages:
             # Welcome message
             welcome_message = """Hi there! 👋 I'm TravelPal, your AI travel planning assistant. 
@@ -735,130 +641,195 @@ For example, you can say: "I want to visit Rome for 5 days" or "Plan a trip to T
             st.stop()
         raise
 
-    # Current Travel Information - only shown once destination is known
+    # Display current travel information if available
+    display_travel_info()
+
+    # Chat interface
+    st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # Chat input
+    if prompt := st.chat_input("Where would you like to travel?", key="chat_input"):
+        # Display user message
+        with st.chat_message("user"):
+            st.markdown(prompt)
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        
+        # Process response
+        with st.chat_message("assistant"):
+            process_user_input(prompt)
+
+def process_user_input(prompt):
+    """Process user input and generate response"""
+    with st.spinner("Creating your travel plan..."):
+        try:
+            # Update user info based on message
+            update_user_info(prompt)
+            
+            # Check if we have a valid API key
+            if not config.GOOGLE_API_KEY or config.GOOGLE_API_KEY == "your_google_api_key_here":
+                st.error("⚠️ Please add your API key in the sidebar or Streamlit secrets.")
+                return
+            
+            # Initialize LLM if needed
+            if 'llm' not in st.session_state:
+                try:
+                    st.session_state.llm = get_llm()
+                except Exception as e:
+                    st.error("⚠️ Error initializing AI model. Please check your API key.")
+                    print(f"LLM initialization error: {str(e)}")
+                    return
+            
+            # Generate response based on current state
+            if st.session_state.user_info['basic_info']['destination']:
+                if should_generate_itinerary(prompt):
+                    itinerary = generate_itinerary()
+                    st.session_state.messages.append({"role": "assistant", "content": itinerary})
+                    st.markdown(itinerary)
+                    st.session_state.current_stage = 'itinerary'
+                else:
+                    response = generate_followup_question()
+                    st.session_state.messages.append({"role": "assistant", "content": response})
+                    st.markdown(response)
+            else:
+                response = "I'd be happy to help plan your trip! Could you tell me where you'd like to travel to?"
+                st.session_state.messages.append({"role": "assistant", "content": response})
+                st.markdown(response)
+                
+        except Exception as e:
+            handle_error(e)
+
+def should_generate_itinerary(prompt):
+    """Determine if we should generate an itinerary now"""
+    if not st.session_state.user_info['basic_info']['destination']:
+        return False
+        
+    # Generate if:
+    # 1. User explicitly asks for it
+    if any(word in prompt.lower() for word in ['itinerary', 'plan', 'schedule', 'create', 'generate']):
+        return True
+        
+    # 2. First message with destination
+    if len(st.session_state.messages) <= 3:
+        return True
+        
+    # 3. Comprehensive info provided
+    if len(prompt.split()) > 15 and any(word in prompt.lower() for word in ['visit', 'travel', 'trip']):
+        return True
+        
+    # 4. Several messages exchanged
+    if len(st.session_state.messages) > 5:
+        return True
+        
+    return False
+
+def generate_followup_question():
+    """Generate appropriate follow-up question"""
+    basic_info = st.session_state.user_info['basic_info']
+    
+    if not basic_info['duration']:
+        return f"Great choice! I'll help you plan your trip to {basic_info['destination']}. How long would you like to stay?"
+    elif not basic_info['preferences']:
+        return f"What kind of activities or experiences are you interested in during your visit to {basic_info['destination']}?"
+    else:
+        return f"I'll create an itinerary for your trip to {basic_info['destination']} now!"
+
+def handle_error(error):
+    """Handle errors gracefully"""
+    error_msg = str(error)
+    if "429" in error_msg:
+        st.error("I'm experiencing high demand right now. Please try again in a few seconds.")
+    elif "API key" in error_msg.lower() or "authentication" in error_msg.lower():
+        st.error("⚠️ Please check your API key in the sidebar or Streamlit secrets.")
+    else:
+        st.error("I encountered an error while processing your request. Please try again.")
+    print(f"Error in processing: {error_msg}")
+
+def apply_custom_css():
+    """Apply custom CSS styling"""
+    st.markdown("""
+        <style>
+        .main { padding: 2rem; }
+        .stApp { background-color: #0E1117; color: #FFFFFF; }
+        .stButton button {
+            background-color: #4F46E5;
+            color: white;
+            border-radius: 20px;
+            padding: 0.5rem 2rem;
+            border: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .stButton button:hover {
+            background-color: #3730A3;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .stProgress > div > div { background-color: #4F46E5; }
+        .stExpander {
+            background-color: #1A1F29;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .stChat { border-radius: 15px; margin: 0.5rem 0; }
+        .user-info {
+            background-color: #1A1F29;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .logo-text {
+            background: linear-gradient(45deg, #4F46E5, #10B981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+        footer { visibility: hidden; }
+        </style>
+    """, unsafe_allow_html=True)
+
+def display_header():
+    """Display application header"""
+    st.markdown("""
+        <div style="background: linear-gradient(135deg, #1A1F29, #111827); padding: 1.5rem; border-radius: 15px; margin-bottom: 2rem; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); border: 1px solid rgba(255, 255, 255, 0.05);">
+            <div style="display: flex; align-items: center;">
+                <div style="font-size: 2.5rem; margin-right: 1rem;">✈️</div>
+                <div>
+                    <h1 class="logo-text" style="margin: 0;">TravelPal</h1>
+                    <p style="margin: 0; color: #A0AEC0;">Your AI travel planning companion</p>
+                </div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+def display_travel_info():
+    """Display current travel information"""
     if st.session_state.user_info['basic_info']['destination']:
         with st.expander("Trip Information", expanded=False):
             st.markdown('<div class="user-info">', unsafe_allow_html=True)
-            
             basic_info = st.session_state.user_info['basic_info']
             
-            # Format as a travel card
             st.markdown(f"""
                 <div style="display: flex; flex-direction: column; gap: 1rem;">
-                    <div class="card">
+                    <div style="background-color: #1A1F29; padding: 1.5rem; border-radius: 12px; margin-bottom: 1rem;">
                         <h3 style="margin-top: 0;">✈️ Trip Summary</h3>
                         <p><strong>Destination:</strong> {basic_info['destination'] or 'Not specified'}</p>
                         <p><strong>Duration:</strong> {basic_info['duration'] or 'Not specified'}</p>
                         <p><strong>Budget:</strong> {basic_info['budget'] or 'Not specified'}</p>
                     </div>
                     
-                    <div class="card">
+                    <div style="background-color: #1A1F29; padding: 1.5rem; border-radius: 12px;">
                         <h3 style="margin-top: 0;">❤️ Preferences</h3>
                         <p>{', '.join(basic_info['preferences']) if basic_info['preferences'] else 'No preferences specified'}</p>
                     </div>
                 </div>
             """, unsafe_allow_html=True)
-            
             st.markdown('</div>', unsafe_allow_html=True)
-
-    # Chat interface
-    st.markdown('<div class="chat-container">', unsafe_allow_html=True)
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.write(message["content"])
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    # Chat input
-    if prompt := st.chat_input("Where would you like to travel?", key="chat_input"):
-        with st.chat_message("user"):
-            st.write(prompt)
-        
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        st.session_state.conversation_history.append(HumanMessage(content=prompt))
-        
-        with st.chat_message("assistant"):
-            with st.spinner("Creating your travel plan..."):
-                try:
-                    # Update user info based on message
-                    update_user_info(prompt)
-                    
-                    # Determine if we should generate itinerary now
-                    generate_now = False
-                    
-                    # If we have a destination, check conditions for immediate generation
-                    if st.session_state.user_info['basic_info']['destination']:
-                        # Keywords that indicate user wants an itinerary
-                        itinerary_keywords = ['itinerary', 'plan', 'schedule', 'create', 'generate', 'make', 'suggest']
-                        
-                        # Generate immediately if:
-                        # 1. User explicitly asks for an itinerary
-                        if any(word in prompt.lower() for word in itinerary_keywords):
-                            generate_now = True
-                            
-                        # 2. This is their first message with a destination (first impression matters)
-                        if len(st.session_state.messages) <= 3:
-                            generate_now = True
-                            
-                        # 3. They've provided comprehensive info in one go
-                        if len(prompt.split()) > 15 and any(word in prompt.lower() for word in ['visit', 'travel', 'trip', 'go to']):
-                            generate_now = True
-                            
-                        # 4. We've already exchanged several messages (don't drag on)
-                        if len(st.session_state.messages) > 5:
-                            generate_now = True
-                        
-                        # Process based on decision
-                        if generate_now:
-                            with st.spinner("Creating your personalized travel itinerary..."):
-                                itinerary = generate_itinerary()
-                                st.session_state.messages.append({"role": "assistant", "content": itinerary})
-                                st.session_state.conversation_history.append(AIMessage(content=itinerary))
-                                st.write(itinerary)
-                                st.session_state.current_stage = 'itinerary'
-                        else:
-                            # Ask ONE focused question before generating
-                            response = f"Great choice! I'll plan your trip to {st.session_state.user_info['basic_info']['destination']}. "
-                            
-                            # Identify ONLY the most important missing information
-                            missing = []
-                            basic_info = st.session_state.user_info['basic_info']
-                            
-                            if not basic_info['duration']:
-                                missing.append("how long you'll be staying")
-                            elif not basic_info['preferences']:
-                                missing.append("what activities or sights you're most interested in")
-                            
-                            # Ask at most ONE question
-                            if missing and len(missing) == 1:
-                                response += f"Could you tell me {missing[0]}? Or I can create an itinerary now with what I know."
-                            else:
-                                # Generate anyway if we have multiple missing items - don't overwhelm
-                                with st.spinner("Creating your personalized travel itinerary..."):
-                                    itinerary = generate_itinerary()
-                                    st.session_state.messages.append({"role": "assistant", "content": itinerary})
-                                    st.session_state.conversation_history.append(AIMessage(content=itinerary))
-                                    st.write(itinerary)
-                                    st.session_state.current_stage = 'itinerary'
-                                return
-                            
-                            st.session_state.messages.append({"role": "assistant", "content": response})
-                            st.session_state.conversation_history.append(AIMessage(content=response))
-                            st.write(response)
-                    else:
-                        # No destination yet, ask for one
-                        response = """I'd be happy to plan your trip! To get started, could you tell me where you'd like to travel to?"""
-                        st.session_state.messages.append({"role": "assistant", "content": response})
-                        st.session_state.conversation_history.append(AIMessage(content=response))
-                        st.write(response)
-                
-                except Exception as e:
-                    error_message = str(e)
-                    if "429" in error_message:
-                        st.error("I'm experiencing high demand right now. Please try again in a few seconds.")
-                    else:
-                        st.error(f"An error occurred: {error_message}")
-                        # Log the error for debugging
-                        print(f"Error in processing: {error_message}")
 
 # Initialize LLM
 try:
