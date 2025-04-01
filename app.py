@@ -85,7 +85,9 @@ def get_llm():
             st.sidebar.error("⚠️ Please enter your Google Gemini API key in the sidebar")
             raise ValueError("No valid API key provided")
             
-        # Create the model with proper error handling
+        print(f"Attempting to initialize model: {config.MODEL_NAME}")
+        
+        # Create the model with proper error handling and no safety settings by default
         model_kwargs = {
             "model": config.MODEL_NAME,
             "temperature": config.MODEL_TEMPERATURE,
@@ -96,18 +98,7 @@ def get_llm():
             "top_k": config.MODEL_TOP_K,
         }
         
-        # Only add safety settings if configured to use them
-        if getattr(config, 'USE_SAFETY_SETTINGS', False):
-            try:
-                model_kwargs["safety_settings"] = {
-                    "HARASSMENT": "block_none", 
-                    "HATE": "block_none", 
-                    "SEXUAL": "block_none", 
-                    "DANGEROUS": "block_none"
-                }
-            except Exception as safety_error:
-                print(f"Warning: Safety settings not applied: {str(safety_error)}")
-                
+        # Don't use safety settings at all - they can cause issues
         return ChatGoogleGenerativeAI(**model_kwargs)
     except Exception as e:
         error_msg = str(e)
@@ -118,23 +109,17 @@ def get_llm():
             st.sidebar.error("⚠️ Invalid API Key. Please check your Google Gemini API key.")
             print("Authentication error - invalid API key")
         
-        # Try with fallback model
-        fallback_model = getattr(config, 'FALLBACK_MODEL_NAME', "gemini-1.5-flash")
+        # Try with fallback model with simpler parameters
+        fallback_model = "gemini-1.5-flash"  # Hard-code the most reliable model
         if config.MODEL_NAME != fallback_model:
             print(f"Attempting with fallback model: {fallback_model}")
             try:
-                fallback_kwargs = {
-                    "model": fallback_model,
-                    "temperature": 0.7,
-                    "google_api_key": config.GOOGLE_API_KEY,
-                    "convert_system_message_to_human": True,
-                    "max_output_tokens": 1024,
-                    "top_p": 0.9,
-                    "top_k": 40
-                }
-                
-                # Simplified safety settings for fallback
-                return ChatGoogleGenerativeAI(**fallback_kwargs)
+                # Use simplified parameters
+                return ChatGoogleGenerativeAI(
+                    model=fallback_model,
+                    temperature=0.7,
+                    google_api_key=config.GOOGLE_API_KEY
+                )
             except Exception as fallback_error:
                 print(f"Fallback model also failed: {str(fallback_error)}")
         

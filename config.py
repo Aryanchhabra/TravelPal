@@ -13,13 +13,8 @@ load_dotenv()
 # IMPORTANT: Without a valid API key, the application will fall back to simplified functionality
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "your_google_api_key_here")
 
-# Model settings - change only if you have access to different models
-MODEL_NAME = "gemini-1.5-flash"  # More reliable than gemini-2.0-flash in many cases
-# Alternative models: "gemini-1.5-pro", "gemini-1.5-flash", "gemini-2.0-flash"
-
-# Fallback model if primary model fails
-FALLBACK_MODEL_NAME = "gemini-1.5-flash"
-USE_SAFETY_SETTINGS = False  # Set to False if having issues with API
+# Model settings - use the most reliable model
+MODEL_NAME = "gemini-1.5-flash"
 
 #=================================================
 # APPLICATION SETTINGS
@@ -37,27 +32,19 @@ SUGGESTION_PROMPT = "prompts/suggestion.txt"
 ITINERARY_PROMPT = "prompts/itinerary.txt"
 
 #=================================================
-# ADVANCED MODEL SETTINGS (optional)
+# SIMPLIFIED MODEL SETTINGS
 #=================================================
-# Modify these if you need to fine-tune the model output
-MODEL_TEMPERATURE = 0.7        # Higher = more creative, Lower = more deterministic
-MODEL_TOP_P = 0.9              # Controls diversity of generated text
-MODEL_TOP_K = 32               # Limits vocabulary choices
-MODEL_MAX_OUTPUT_TOKENS = 1024 # Maximum response length
+# Conservative values that are less likely to cause errors
+MODEL_TEMPERATURE = 0.5
+MODEL_TOP_P = 0.8
+MODEL_TOP_K = 30
+MODEL_MAX_OUTPUT_TOKENS = 800
 
 #=================================================
 # RATE LIMITING SETTINGS
 #=================================================
 # Settings for API rate limiting (per Gemini models limits)
-RPM_LIMIT = 15                # Requests per minute
-RPD_LIMIT = 1500              # Requests per day
-TPM_LIMIT = 1000000           # Tokens per minute
-ESTIMATED_TOKENS_PER_REQUEST = 100  # Estimated tokens per typical request
-
-#=================================================
-# ERROR HANDLING
-#=================================================
-# Control how the application handles errors
-MAX_RETRIES = 3               # Maximum number of retry attempts for API calls
-ENABLE_MOCK_RESPONSES = True  # Generate mock responses when API calls fail
-DEBUG_MODE = False            # Print detailed error information 
+RPM_LIMIT = 10                # Requests per minute (reduced)
+RPD_LIMIT = 1000              # Requests per day
+TPM_LIMIT = 500000            # Tokens per minute
+ESTIMATED_TOKENS_PER_REQUEST = 100 
