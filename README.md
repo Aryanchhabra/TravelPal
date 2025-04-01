@@ -178,10 +178,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Streamlit for the web application framework
 - LangChain for simplified LLM interactions
 
----
-
-<p align="center">
-  <b>Created by [Your Name]</b><br>
-  <a href="https://github.com/yourusername">GitHub</a> •
-  <a href="https://linkedin.com/in/yourusername">LinkedIn</a>
-</p> 
