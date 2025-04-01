@@ -1,7 +1,5 @@
 # TravelPal: AI-Powered Travel Planning Assistant
 
-![TravelPal Logo](https://via.placeholder.com/800x400?text=TravelPal)
-
 ## 📋 Overview
 
 TravelPal is an innovative AI-powered travel planning assistant that creates personalized travel itineraries with minimal user input. Using Google's Gemini 2.0 Flash API, TravelPal can understand natural language requests and generate detailed day-by-day itineraries complete with attractions, activities, dining options, and practical travel tips.
@@ -21,6 +19,19 @@ Unlike traditional travel planners that require extensive information gathering,
 - **Responsive UX Design**: Adapts perfectly to different screen sizes
 - **Intelligent Default System**: Auto-fills missing information based on destination type
 
+## 🔐 Security and API Keys
+
+**IMPORTANT: API Key Security**
+
+TravelPal requires a Google Gemini API key to function properly:
+
+- **NEVER commit your API key to version control**
+- Use the `.env` file method described in the installation guide for secure key storage
+- The application provides a secure password-masked field for entering your API key in the UI
+- The `.gitignore` file is configured to exclude sensitive files (`.env`, credentials)
+
+For detailed setup instructions, see the [Installation Guide](INSTALLATION.md).
+
 ## 🚀 Installation
 
 ### Prerequisites
@@ -28,11 +39,11 @@ Unlike traditional travel planners that require extensive information gathering,
 - Python 3.8 or higher
 - Google Gemini API key
 
-### Setup
+### Quick Setup
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/TravelPal.git
+   git clone https://github.com/Aryanchhabra/TravelPal.git
    cd TravelPal
    ```
 
@@ -47,33 +58,17 @@ Unlike traditional travel planners that require extensive information gathering,
    pip install -r requirements.txt
    ```
 
-4. Create a `config.py` file with your API credentials:
-   ```python
-   # config.py
-   GOOGLE_API_KEY = "your_google_api_key"
-   MODEL_NAME = "gemini-2.0-flash"
-   STREAMLIT_TITLE = "TravelPal - AI Travel Planner"
-   
-   # Prompt file paths
-   INITIAL_GATHERING_PROMPT = "prompts/initial_gathering.txt"
-   REFINEMENT_PROMPT = "prompts/refinement.txt"
-   SUGGESTION_PROMPT = "prompts/suggestion.txt"
-   ITINERARY_PROMPT = "prompts/itinerary.txt"
+4. Create a `.env` file with your API key:
+   ```
+   GOOGLE_API_KEY=your_actual_api_key_here
    ```
 
-5. Create the prompt files in a `prompts` folder (examples provided in the repository)
-
-## 🏃‍♂️ Running the App
-
-1. Start the Streamlit application:
+5. Start the application:
    ```bash
    streamlit run app.py
    ```
 
-2. Open your browser and navigate to:
-   ```
-   http://localhost:8501
-   ```
+For complete installation details, see the [Installation Guide](INSTALLATION.md).
 
 ## 📱 Usage Guide
 
@@ -144,21 +139,18 @@ TravelPal is built with the following technology stack:
 TravelPal/
 ├── app.py                  # Main application file
 ├── config.py               # Configuration and API keys
+├── .env                    # Environment variables (not in version control)
+├── .env.template           # Template for environment variables
+├── .gitignore              # Git ignore configuration
 ├── prompts/                # Prompt templates
 │   ├── initial_gathering.txt
 │   ├── refinement.txt
 │   ├── suggestion.txt
 │   └── itinerary.txt
 ├── requirements.txt        # Dependencies
+├── INSTALLATION.md         # Detailed installation guide
 └── README.md               # Documentation
 ```
-
-### Key Functions
-
-- `update_user_info()`: Advanced pattern-based information extraction
-- `generate_itinerary()`: Creates travel itineraries with smart defaults
-- `search_travel_info()`: Retrieves and optimizes travel information
-- `format_conversation_history()`: Token-efficient conversation tracking
 
 ## 🛠️ Future Improvements
 
@@ -170,6 +162,10 @@ TravelPal/
 - Social sharing features
 - Mobile application version
 
+## 👥 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
 ## 📜 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
@@ -179,55 +175,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Google Gemini API for powering the AI capabilities
 - Streamlit for the web application framework
 - LangChain for simplified LLM interactions
-
----
-
-<p align="center">
-  <b>Created by [Your Name]</b><br>
-  <a href="https://github.com/yourusername">GitHub</a> •
-  <a href="https://linkedin.com/in/yourusername">LinkedIn</a>
-</p>
-
-## Security and API Keys
-
-🔐 **IMPORTANT: API Key Security**
-
-TravelPal requires a Google Gemini API key to function properly:
-
-- **NEVER commit your API key to version control**
-- Use the `.env` file method described in the installation guide for secure key storage
-- The application provides a secure password-masked field for entering your API key in the UI
-- The `.gitignore` file is configured to exclude sensitive files (`.env`, credentials)
-
-For detailed setup instructions, see the [Installation Guide](INSTALLATION.md).
-
-## Quick Start
-
-1. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. **Set up your API key** (securely in a `.env` file):
-   ```
-   GOOGLE_API_KEY=your_api_key_here
-   ```
-
-3. **Run the application**:
-   ```bash
-   streamlit run app.py
-   ```
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- Google Gemini API for the powerful language model
-- Streamlit for the web application framework
-- All open-source libraries used in this project 
+- All open-source libraries used in this project
