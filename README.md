@@ -186,4 +186,48 @@ This project is licensed under the MIT License - see the LICENSE file for detail
   <b>Created by [Your Name]</b><br>
   <a href="https://github.com/yourusername">GitHub</a> •
   <a href="https://linkedin.com/in/yourusername">LinkedIn</a>
-</p> 
+</p>
+
+## Security and API Keys
+
+🔐 **IMPORTANT: API Key Security**
+
+TravelPal requires a Google Gemini API key to function properly:
+
+- **NEVER commit your API key to version control**
+- Use the `.env` file method described in the installation guide for secure key storage
+- The application provides a secure password-masked field for entering your API key in the UI
+- The `.gitignore` file is configured to exclude sensitive files (`.env`, credentials)
+
+For detailed setup instructions, see the [Installation Guide](INSTALLATION.md).
+
+## Quick Start
+
+1. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Set up your API key** (securely in a `.env` file):
+   ```
+   GOOGLE_API_KEY=your_api_key_here
+   ```
+
+3. **Run the application**:
+   ```bash
+   streamlit run app.py
+   ```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- Google Gemini API for the powerful language model
+- Streamlit for the web application framework
+- All open-source libraries used in this project 

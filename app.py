@@ -571,14 +571,68 @@ def update_user_info(message: str):
     if basic_info['destination'] and not basic_info['budget']:
         basic_info['budget'] = 'Moderate'  # Default budget
 
+def create_sidebar():
+    """Create sidebar with improved API key security."""
+    with st.sidebar:
+        st.title("TravelPal Settings")
+        
+        # Load current API key from environment or session state
+        current_api_key = config.GOOGLE_API_KEY
+        if current_api_key == "your_google_api_key_here":
+            current_api_key = ""
+            
+        # API Key input with password masking - default to env variable
+        api_key = st.text_input(
+            "Google Gemini API Key", 
+            value=current_api_key, 
+            type="password",
+            help="Get your API key at https://makersuite.google.com/app/apikey",
+            placeholder="Enter API key here"
+        )
+        
+        # Update session state if key provided
+        if api_key and api_key != current_api_key:
+            # Store in session but not in environment (more secure)
+            config.GOOGLE_API_KEY = api_key
+            if 'llm' in st.session_state:
+                # Force recreation of LLM with new key
+                del st.session_state.llm
+            st.success("✅ API key updated!")
+                
+        if not api_key:
+            st.warning("⚠️ Please enter your API key OR set it in your .env file")
+            st.markdown("""
+            For better security:
+            1. Create a `.env` file in the project root
+            2. Add `GOOGLE_API_KEY=your_key_here`
+            3. Add `.env` to your `.gitignore`
+            """)
+            
+        # Model selection
+        model_options = ["gemini-1.5-flash", "gemini-1.5-pro"]
+        selected_model = st.selectbox("Model", options=model_options, index=0)
+        if selected_model != config.MODEL_NAME:
+            config.MODEL_NAME = selected_model
+            if 'llm' in st.session_state:
+                # Force recreation of LLM with new model
+                del st.session_state.llm
+            st.success(f"✅ Model updated to {selected_model}")
+
 def main():
-    # Set up the page with a modern dark theme and custom styling
+    """Main application entry point with dark theme."""
+    # Configure page
     st.set_page_config(
         page_title=config.STREAMLIT_TITLE,
         page_icon="✈️",
         layout="wide",
         initial_sidebar_state="expanded"
     )
+    
+    # Initialize session state
+    initialize_session_state()
+    
+    # Create sidebar
+    create_sidebar()
 
     # Custom CSS for better styling
     st.markdown("""
@@ -678,57 +732,6 @@ def main():
         </div>
     """, unsafe_allow_html=True)
 
-    # Sidebar with API status
-    with st.sidebar:
-        st.markdown("""
-            <style>
-            .sidebar-header {
-                font-size: 1.5rem;
-                font-weight: bold;
-                margin-bottom: 1rem;
-                color: #FFFFFF;
-            }
-            .help-container {
-                background-color: #1A1F29;
-                padding: 1rem;
-                border-radius: 10px;
-                margin: 0.5rem 0;
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-                border: 1px solid rgba(255, 255, 255, 0.05);
-            }
-            </style>
-        """, unsafe_allow_html=True)
-        
-        # Quick start guide
-        st.markdown('<p class="sidebar-header">🚀 Quick Start</p>', unsafe_allow_html=True)
-        st.markdown("""
-            <div class="help-container">
-                <p>Just tell TravelPal your destination to get started!</p>
-                <p>Examples:</p>
-                <ul>
-                    <li><i>"I want to visit Paris for 4 days"</i></li>
-                    <li><i>"Plan a trip to Tokyo"</i></li>
-                    <li><i>"I'm thinking about a hiking trip in Switzerland"</i></li>
-                </ul>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        # About section
-        st.markdown('<p class="sidebar-header">ℹ️ About</p>', unsafe_allow_html=True)
-        st.markdown("""
-            <div class="help-container">
-                <p>TravelPal creates personalized travel itineraries using AI.</p>
-                <p>Simply tell it where you want to go, and it will generate a day-by-day plan tailored to your preferences.</p>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        # API Key Configuration
-        st.markdown('<p class="sidebar-header">🔑 API Setup</p>', unsafe_allow_html=True)
-        api_key = st.text_input("Google API Key", value=config.GOOGLE_API_KEY if config.GOOGLE_API_KEY != "your_google_api_key_here" else "", type="password")
-        if api_key and api_key != config.GOOGLE_API_KEY:
-            config.GOOGLE_API_KEY = api_key
-            st.success("API key updated! Please refresh the messages to use the new key.")
-    
     # Main content area
     try:
         initialize_session_state()
