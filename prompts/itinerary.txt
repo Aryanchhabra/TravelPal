@@ -1,0 +1,27 @@
+Create a detailed day-by-day travel itinerary for the destination.
+
+For each day include:
+- Morning activity
+- Afternoon activity
+- Evening activity or restaurant
+- Brief transportation notes
+
+Use this format:
+# [Destination] Itinerary ([Duration])
+
+## Day 1: Arrival
+- Morning: [Activity]
+- Afternoon: [Activity]
+- Evening: [Activity/Restaurant]
+
+## Day 2: [Theme]
+- Morning: [Activity]
+- Afternoon: [Activity]
+- Evening: [Activity/Restaurant]
+
+[Continue for each day]
+
+## Tips:
+- [1-2 practical tips]
+
+Be specific, realistic, and match the visitor's preferences. 
